@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ระบบสแกน QR Code นักเรียน</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#eef5ff;color:#17345b}
+main{max-width:520px;margin:25px auto;padding:20px}
+.card{background:white;border-radius:20px;padding:22px;box-shadow:0 5px 20px #0001}
+h1{text-align:center;font-size:25px}
+p{text-align:center;color:#586b85}
+button{width:100%;padding:14px;margin-top:10px;border:0;border-radius:12px;background:#1769e0;color:white;font-size:17px;cursor:pointer}
+button.stop{background:#64748b}
+#reader{width:100%;margin-top:18px}
+#result{padding:14px;background:#f1f5f9;border-radius:10px;overflow-wrap:anywhere;margin-top:14px}
+</style>
+</head>
+<body>
+<main>
+<div class="card">
+<h1>📷 สแกน QR Code นักเรียน</h1>
+<p>ระบบบันทึกคะแนนนักเรียน</p>
+<button onclick="startScan()">เปิดกล้องและเริ่มสแกน</button>
+<button class="stop" onclick="stopScan()">หยุดกล้อง</button>
+<div id="reader"></div>
+<div id="result">พร้อมสแกน QR Code</div>
+</div>
+</main>
+<script>
+let scanner=null;
+let running=false;
+let lastCode="";
+let lastTime=0;
+
+async function startScan(){
+  if(running)return;
+  if(!window.Html5Qrcode){
+    document.getElementById("result").textContent=
+      "โหลดระบบสแกนไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต";
+    return;
+  }
+  try{
+    scanner=new Html5Qrcode("reader");
+    const cameras=await Html5Qrcode.getCameras();
+    if(!cameras.length)throw Error("ไม่พบกล้อง");
+    const camera=cameras.find(c=>/back|rear|environment/i.test(c.label))
+      ||cameras[0];
+    await scanner.start(
+      camera.id,
+      {fps:10,qrbox:{width:240,height:240}},
+      text=>{
+        const now=Date.now();
+        if(text===lastCode&&now-lastTime<3000)return;
+        lastCode=text;
+        lastTime=now;
+        document.getElementById("result").textContent=
+          "อ่าน QR Code สำเร็จ: "+text;
+      },
+      ()=>{}
+    );
+    running=true;
+    document.getElementById("result").textContent=
+      "กล้องพร้อมใช้งาน กรุณาส่อง QR Code";
+  }catch(e){
+    document.getElementById("result").textContent=
+      "เปิดกล้องไม่ได้: "+e.message+
+      " — โปรดอนุญาตให้เว็บไซต์ใช้กล้อง";
+    if(scanner){try{await scanner.clear()}catch(_){}scanner=null}
+  }
+}
+
+async function stopScan(){
+  if(scanner){
+    try{if(running)await scanner.stop()}catch(_){}
+    try{await scanner.clear()}catch(_){}
+  }
+  scanner=null;
+  running=false;
+  document.getElementById("result").textContent="หยุดกล้องแล้ว";
+}
+</script>
+</body>
+</html>
