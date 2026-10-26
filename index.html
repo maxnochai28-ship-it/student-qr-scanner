@@ -4,13 +4,18 @@
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef5ff;color:#17345b}main{max-width:580px;margin:16px auto;padding:12px}.card{background:white;border-radius:20px;padding:18px;box-shadow:0 5px 20px #0001}h1{text-align:center;font-size:24px;margin:4px 0 8px}p{text-align:center;color:#586b85}button{width:100%;padding:14px;margin-top:10px;border:0;border-radius:12px;background:#1769e0;color:white;font-size:17px;cursor:pointer}button.stop{background:#64748b}button.save{background:#15803d}button:disabled{opacity:.55}#reader{width:100%;margin-top:18px}.panel{padding:14px;background:#f1f5f9;border-radius:12px;overflow-wrap:anywhere;margin-top:14px}.good{background:#e8f8ee;color:#166534}.bad{background:#fff0f0;color:#991b1b}.criteria{margin-top:14px;padding:14px;background:#f8fafc;border:1px solid #dbeafe;border-radius:14px}.criteria h2{font-size:19px;margin:0 0 8px}.item{padding:12px 4px;border-bottom:1px solid #e2e8f0;font-size:16px;line-height:1.45}.item:last-child{border-bottom:0}.item label{display:block;font-weight:600;margin-bottom:8px}.rating{display:flex;gap:8px}.rating label{flex:1;text-align:center;padding:8px 4px;border:1px solid #cbd5e1;border-radius:9px;background:white;font-weight:normal;font-size:14px}.rating input{accent-color:#15803d}.total{font-weight:bold;text-align:center;font-size:22px;margin:14px 0;color:#166534}small{color:#64748b}[hidden]{display:none!important}
 </style></head><body><main><div class="card">
-<h1>📷 สแกน QR และบันทึกคะแนน</h1><p>สแกน QR เพื่อค้นหานักเรียน แล้วให้คะแนนประจำวันเต็ม 10 คะแนน</p>
+<h1>📷 สแกน QR และบันทึกคะแนน</h1><p>สแกน QR เพื่อค้นหานักเรียน บันทึกคะแนนตาม Unit และดูประวัติคะแนนรายบุคคล</p>
 <button onclick="startScan()">เปิดกล้องและเริ่มสแกน</button><button class="stop" onclick="stopScan()">หยุดกล้อง</button>
 <div id="reader"></div><div id="result" class="panel">พร้อมสแกน QR Code</div><div id="student" class="panel good" hidden></div>
   
 <div id="studentActions" hidden>
+<<<<<<< HEAD
+  <button onclick="showUnitScore()">
+    📝 บันทึกคะแนนตาม Unit
+=======
   <button onclick="showDailyScore()">
     📝 บันทึกคะแนนวันนี้
+>>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
   </button>
   <button onclick="showStudentHistory()" class="stop">
     📊 ดูประวัติคะแนนรายบุคคล
@@ -26,6 +31,22 @@
   </button>
 </section>
 
+<<<<<<< HEAD
+<section id="scorePanel" class="criteria" hidden>
+<h2>📝 บันทึกคะแนนตาม Unit</h2>
+<p style="text-align:left;margin:4px 0 12px">เลือกรายการ Unit ของชั้นเรียนนี้ แล้วระบุคะแนนที่จะบันทึก</p>
+<label for="unitSelect">รายการ Unit</label>
+<select id="unitSelect" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
+<option value="">กำลังโหลดรายการ Unit…</option>
+</select>
+<label for="unitPoints">คะแนน</label>
+<input id="unitPoints" type="number" min="0" max="100" step="1" value="1" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
+<label for="unitNote">หมายเหตุ (ถ้ามี)</label>
+<input id="unitNote" type="text" maxlength="300" placeholder="ระบุหมายเหตุ" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
+<button id="saveBtn" class="save" onclick="saveUnitScore()">ยืนยันและบันทึกคะแนน Unit</button>
+</section>
+<p><small>คะแนนใหม่จะบันทึกในชีต ScoreRecords เดิม รายการคะแนนประจำวันเก่าจะไม่ถูกลบหรือแก้ไข</small></p>
+=======
 <section id="scorePanel" class="criteria" hidden><h2>ให้คะแนนประจำวัน (เต็ม 10 คะแนน)</h2><p style="text-align:left;margin:4px 0 8px">แต่ละหัวข้อให้ 0–2 คะแนน รวม 5 หัวข้อ สูงสุด 10 คะแนน</p>
 <div class="item"><label>1. ตรงเวลาและทำกิจกรรมเวรประจำวัน</label><div class="rating"><label><input type="radio" name="c1" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c1" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c1" value="2" onchange="updateTotal()"> 2</label></div></div>
 <div class="item"><label>2. แต่งกายถูกต้องตามระเบียบของโรงเรียน</label><div class="rating"><label><input type="radio" name="c2" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c2" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c2" value="2" onchange="updateTotal()"> 2</label></div></div>
@@ -34,6 +55,7 @@
 <div class="item"><label>5. ทำการบ้านและส่งงานตามกำหนด</label><div class="rating"><label><input type="radio" name="c5" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c5" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c5" value="2" onchange="updateTotal()"> 2</label></div></div>
 <div class="total">รวม <span id="total">0</span> / 10 คะแนน</div><button id="saveBtn" class="save" onclick="saveDailyScore()">ยืนยันและบันทึกคะแนน</button><button onclick="clearScoreForm()" class="stop">ล้างคะแนนเป็น 0</button></section>
 <p><small>บันทึกได้ 1 ครั้งต่อนักเรียน 1 คนต่อวัน เพื่อป้องกันคะแนนซ้ำ ระบบเก็บข้อมูลในชีต DailyScoreRecords แยกจากประวัติคะแนนเดิม</small></p>
+>>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
 </div></main>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC3VZUM894dAC7OSy8SXBVsfDPVYKN8OZOb54cJes3RpbR0CQIXesmKxRIFySkUFFqYA/exec";
@@ -83,6 +105,38 @@ function lookupStudent(id) {
   });
 }
 
+<<<<<<< HEAD
+function showUnitScore() {
+  if (!currentStudent) return;
+  document.getElementById('historyPanel').hidden = true;
+  document.getElementById('scorePanel').hidden = false;
+  const select = document.getElementById('unitSelect');
+  select.innerHTML = '<option value="">กำลังโหลดรายการ Unit…</option>';
+  jsonp({api:'items', className:currentStudent.className}, data => {
+    select.replaceChildren();
+    if (!data || !data.ok || !Array.isArray(data.items) || !data.items.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'ไม่พบรายการ Unit สำหรับชั้นนี้';
+      select.appendChild(opt);
+      status(data && data.message ? data.message : 'ไม่พบรายการ Unit', 'bad');
+      return;
+    }
+    data.items.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.itemId;
+      opt.textContent = item.name;
+      select.appendChild(opt);
+    });
+    document.getElementById('unitPoints').value = '1';
+    document.getElementById('unitNote').value = '';
+    status('เลือกรายการ Unit แล้วบันทึกคะแนนได้', 'good');
+  }, err => {
+    select.innerHTML = '<option value="">โหลดรายการ Unit ไม่สำเร็จ</option>';
+    status(err.message || 'โหลดรายการ Unit ไม่สำเร็จ', 'bad');
+  });
+  document.getElementById('scorePanel').scrollIntoView({behavior:'smooth',block:'start'});
+=======
 function showDailyScore() {
   if (!currentStudent) return;
 
@@ -93,6 +147,7 @@ function showDailyScore() {
     behavior: 'smooth',
     block: 'start'
   });
+>>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
 }
 
 function showStudentHistory() {
@@ -150,10 +205,48 @@ function showStudentHistory() {
 }
 
 
+<<<<<<< HEAD
+function saveUnitScore() {
+  if (!currentStudent || busy) return;
+  const itemId = document.getElementById('unitSelect').value;
+  const points = Number(document.getElementById('unitPoints').value);
+  const note = document.getElementById('unitNote').value.trim();
+  if (!itemId) { status('กรุณาเลือกรายการ Unit', 'bad'); return; }
+  if (!Number.isInteger(points) || points < 0 || points > 100) {
+    status('กรุณากรอกคะแนนเป็นจำนวนเต็ม 0–100', 'bad'); return;
+  }
+  if (!confirm('ยืนยันบันทึกคะแนน '+points+' ให้ '+currentStudent.firstName+' '+currentStudent.lastName+' ใช่หรือไม่?')) return;
+  busy = true;
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+  jsonp({api:'unitScore', id:currentStudent.id, itemId:itemId, points:String(points), note:note}, data => {
+    busy = false; btn.disabled = false; btn.textContent = 'ยืนยันและบันทึกคะแนน Unit';
+    if (data && data.ok) {
+      status('บันทึกคะแนน Unit สำเร็จ: '+data.itemName+' ได้ '+data.points+' คะแนน', 'good');
+      document.getElementById('unitNote').value = '';
+    } else {
+      status(data && data.message ? data.message : 'บันทึกคะแนนไม่สำเร็จ', 'bad');
+    }
+  }, err => {
+    busy = false; btn.disabled = false; btn.textContent = 'ยืนยันและบันทึกคะแนน Unit';
+    status((err.message || 'บันทึกคะแนนไม่สำเร็จ')+' ตรวจสอบ ScoreRecords ก่อนบันทึกซ้ำ', 'bad');
+  });
+}
+
+async function stopScan() {
+  if (scanner) {
+    try { if (running) await scanner.stop(); } catch (_) {}
+    try { await scanner.clear(); } catch (_) {}
+  }
+  scanner = null; running = false;
+  status('หยุดกล้องแล้ว');
+}
+=======
 function selectedScores(){return [1,2,3,4,5].map(i=>Number(document.querySelector('input[name="c'+i+'"]:checked').value))}
 function updateTotal(){document.getElementById("total").textContent=selectedScores().reduce((a,b)=>a+b,0)}
 function clearScoreForm(){for(let i=1;i<=5;i++)document.querySelector('input[name="c'+i+'"][value="0"]').checked=true;updateTotal()}
 function saveDailyScore(){if(!currentStudent||busy)return;const scores=selectedScores();const total=scores.reduce((a,b)=>a+b,0);if(!confirm("ยืนยันบันทึกคะแนน "+total+"/10 ให้ "+currentStudent.firstName+" "+currentStudent.lastName+" ใช่หรือไม่?"))return;busy=true;const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="กำลังบันทึก…";jsonp({api:"dailyScore",id:currentStudent.id,scores:scores.join(",")},data=>{busy=false;btn.disabled=false;btn.textContent="ยืนยันและบันทึกคะแนน";if(data&&data.ok){status("บันทึกคะแนนสำเร็จ "+data.total+"/10 คะแนน วันที่ "+data.date,"good");document.getElementById("scorePanel").hidden=true}else status(data&&data.message?data.message:"บันทึกคะแนนไม่สำเร็จ","bad")},err=>{busy=false;btn.disabled=false;btn.textContent="ยืนยันและบันทึกคะแนน";status(err.message+" หากไม่แน่ใจว่าบันทึกแล้วหรือไม่ ให้ตรวจสอบชีต DailyScoreRecords ก่อนกดซ้ำ","bad")})}
+>>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
 
 async function startScan() {
   if (running) return;
