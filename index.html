@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -9,78 +8,107 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#eef5ff;color:#17345b}
-main{max-width:520px;margin:25px auto;padding:20px}
+main{max-width:560px;margin:20px auto;padding:16px}
 .card{background:white;border-radius:20px;padding:22px;box-shadow:0 5px 20px #0001}
-h1{text-align:center;font-size:25px}
+h1{text-align:center;font-size:25px;margin-top:4px}
 p{text-align:center;color:#586b85}
 button{width:100%;padding:14px;margin-top:10px;border:0;border-radius:12px;background:#1769e0;color:white;font-size:17px;cursor:pointer}
 button.stop{background:#64748b}
 #reader{width:100%;margin-top:18px}
-#result{padding:14px;background:#f1f5f9;border-radius:10px;overflow-wrap:anywhere;margin-top:14px}
+.panel{padding:14px;background:#f1f5f9;border-radius:12px;overflow-wrap:anywhere;margin-top:14px}
+.good{background:#e8f8ee;color:#166534}
+.bad{background:#fff0f0;color:#991b1b}
+small{color:#64748b}
 </style>
 </head>
 <body>
-<main>
-<div class="card">
+<main><div class="card">
 <h1>📷 สแกน QR Code นักเรียน</h1>
-<p>ระบบบันทึกคะแนนนักเรียน</p>
-<button onclick="startScan()">เปิดกล้องและเริ่มสแกน</button>
+<p>ค้นหารายชื่อนักเรียนจาก Google Sheets</p>
+<button id="startBtn" onclick="startScan()">เปิดกล้องและเริ่มสแกน</button>
 <button class="stop" onclick="stopScan()">หยุดกล้อง</button>
 <div id="reader"></div>
-<div id="result">พร้อมสแกน QR Code</div>
-</div>
-</main>
+<div id="result" class="panel">พร้อมสแกน QR Code</div>
+<div id="student" class="panel" hidden></div>
+<p><small>หากไม่พบข้อมูล ให้ตรวจสอบว่าข้อความใน QR Code ตรงกับรหัสในคอลัมน์ id ของชีต Students</small></p>
+</div></main>
 <script>
-let scanner=null;
-let running=false;
-let lastCode="";
-let lastTime=0;
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwK4JPRMLVUDU-ky3tE2Y1Vfxmf4eiOwuQn5X3oiEKhk7OAegDmXAUULsn6ML3wwNnRcQ/exec";
+let scanner = null, running = false, lastCode = "", lastTime = 0, requestNo = 0;
 
-async function startScan(){
-  if(running)return;
-  if(!window.Html5Qrcode){
-    document.getElementById("result").textContent=
-      "โหลดระบบสแกนไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต";
+function status(message, kind="") {
+  const el = document.getElementById("result");
+  el.textContent = message;
+  el.className = "panel" + (kind ? " " + kind : "");
+}
+
+function lookupStudent(id) {
+  const studentBox = document.getElementById("student");
+  studentBox.hidden = true;
+  status("กำลังค้นหารหัส " + id + " ใน Google Sheets…");
+  const cb = "qrLookupCallback_" + Date.now() + "_" + (++requestNo);
+  const script = document.createElement("script");
+  const timeout = setTimeout(() => {
+    cleanup();
+    status("หมดเวลารอข้อมูลจาก Apps Script กรุณาตรวจสอบ URL และการ Deploy", "bad");
+  }, 15000);
+  function cleanup() {
+    clearTimeout(timeout);
+    try { delete window[cb]; } catch (_) { window[cb] = undefined; }
+    script.remove();
+  }
+  window[cb] = function(data) {
+    cleanup();
+    if (!data || !data.ok || !data.student) {
+      status(data && data.message ? data.message : "ค้นหาข้อมูลไม่สำเร็จ", "bad");
+      return;
+    }
+    const s = data.student;
+    studentBox.hidden = false;
+    studentBox.className = "panel good";
+    studentBox.textContent = "พบข้อมูลนักเรียน: " + s.firstName + " " + s.lastName + " | ชั้น " + s.className + " | รหัส " + s.id;
+    status("สแกนสำเร็จและเชื่อมต่อ Google Sheets แล้ว", "good");
+  };
+  script.onerror = function() {
+    cleanup();
+    status("เชื่อมต่อ Apps Script ไม่สำเร็จ กรุณาตรวจสอบว่า Deploy เป็น Web app และเข้าถึงได้", "bad");
+  };
+  script.src = SCRIPT_URL + "?api=student&id=" + encodeURIComponent(id) + "&callback=" + cb;
+  document.body.appendChild(script);
+}
+
+async function startScan() {
+  if (running) return;
+  if (!window.Html5Qrcode) {
+    status("โหลดระบบสแกนไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต", "bad");
     return;
   }
-  try{
-    scanner=new Html5Qrcode("reader");
-    const cameras=await Html5Qrcode.getCameras();
-    if(!cameras.length)throw Error("ไม่พบกล้อง");
-    const camera=cameras.find(c=>/back|rear|environment/i.test(c.label))
-      ||cameras[0];
-    await scanner.start(
-      camera.id,
-      {fps:10,qrbox:{width:240,height:240}},
-      text=>{
-        const now=Date.now();
-        if(text===lastCode&&now-lastTime<3000)return;
-        lastCode=text;
-        lastTime=now;
-        document.getElementById("result").textContent=
-          "อ่าน QR Code สำเร็จ: "+text;
-      },
-      ()=>{}
-    );
-    running=true;
-    document.getElementById("result").textContent=
-      "กล้องพร้อมใช้งาน กรุณาส่อง QR Code";
-  }catch(e){
-    document.getElementById("result").textContent=
-      "เปิดกล้องไม่ได้: "+e.message+
-      " — โปรดอนุญาตให้เว็บไซต์ใช้กล้อง";
-    if(scanner){try{await scanner.clear()}catch(_){}scanner=null}
+  try {
+    scanner = new Html5Qrcode("reader");
+    const cameras = await Html5Qrcode.getCameras();
+    if (!cameras.length) throw Error("ไม่พบกล้อง");
+    const camera = cameras.find(c => /back|rear|environment/i.test(c.label)) || cameras[0];
+    await scanner.start(camera.id, {fps:10, qrbox:{width:240,height:240}}, text => {
+      const now = Date.now();
+      if (text === lastCode && now - lastTime < 3000) return;
+      lastCode = text; lastTime = now;
+      lookupStudent(text.trim());
+    }, () => {});
+    running = true;
+    status("กล้องพร้อมใช้งาน กรุณาส่อง QR Code");
+  } catch (e) {
+    status("เปิดกล้องไม่ได้: " + (e.message || e) + " — โปรดอนุญาตให้เว็บไซต์ใช้กล้อง", "bad");
+    if (scanner) { try { await scanner.clear(); } catch (_) {} scanner = null; }
   }
 }
 
-async function stopScan(){
-  if(scanner){
-    try{if(running)await scanner.stop()}catch(_){}
-    try{await scanner.clear()}catch(_){}
+async function stopScan() {
+  if (scanner) {
+    try { if (running) await scanner.stop(); } catch (_) {}
+    try { await scanner.clear(); } catch (_) {}
   }
-  scanner=null;
-  running=false;
-  document.getElementById("result").textContent="หยุดกล้องแล้ว";
+  scanner = null; running = false;
+  status("หยุดกล้องแล้ว");
 }
 </script>
 </body>
