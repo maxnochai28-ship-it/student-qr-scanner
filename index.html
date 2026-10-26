@@ -49,8 +49,51 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGQEmsQRuN451qA7NhoAmiQgrD0uDaNlzbb3P2bF8paiv7fCzAFDhTrczUQ606JmuJ8g/exec";
 let scanner=null,running=false,lastCode="",lastTime=0,requestNo=0,currentStudent=null,busy=false;
 function status(message,kind=""){const el=document.getElementById("result");el.textContent=message;el.className="panel"+(kind?" "+kind:"");}
-function jsonp(params,onData,onError){const cb="qrCallback_"+Date.now()+"_"+(++requestNo);const script=document.createElement("script");let done=false;const timeout=setTimeout(()=>fail(new Error("หมดเวลารอข้อมูลจาก Apps Script")),15000);function clean(){clearTimeout(timeout);try{delete window[cb]}catch(_){window[cb]=undefined}script.remove()}function fail(err){if(done)return;done=true;clean();onError(err)}window[cb]=data=>{if(done)return;done=true;clean();onData(data)};script.onerror=()=>fail(new Error("เชื่อมต่อ Apps Script ไม่สำเร็จ"));params.callback=cb;script.src=SCRIPT_URL+"?"+new URLSearchParams(params).toString();document.body.appendChild(script);}
 
+function jsonp(params, onData, onError) {
+  const cb = "qrCallback_" + Date.now() + "_" + (++requestNo);
+  const script = document.createElement("script");
+  let done = false;
+
+  const timeout = setTimeout(() => {
+    fail(new Error("หมดเวลารอข้อมูลจาก Apps Script"));
+  }, 15000);
+
+  function clean() {
+    clearTimeout(timeout);
+    try {
+      delete window[cb];
+    } catch (_) {
+      window[cb] = undefined;
+    }
+    script.remove();
+  }
+
+  function fail(err) {
+    if (done) return;
+    done = true;
+    clean();
+    onError(err);
+  }
+
+  window[cb] = data => {
+    if (done) return;
+    done = true;
+    clean();
+    onData(data);
+  };
+
+  script.onerror = () => {
+    fail(new Error("เชื่อมต่อ Apps Script ไม่สำเร็จ"));
+  };
+
+  // ทำสำเนาพารามิเตอร์เพื่อไม่เปลี่ยนข้อมูลต้นฉบับ
+  const query = new URLSearchParams(params);
+  query.set("callback", cb);
+
+  script.src = SCRIPT_URL + "?" + query.toString();
+  document.body.appendChild(script);
+}
 
 function lookupStudent(id) {
   id = String(id || '').trim();
