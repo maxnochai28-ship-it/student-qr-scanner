@@ -7,6 +7,25 @@
 <h1>📷 สแกน QR และบันทึกคะแนน</h1><p>สแกน QR เพื่อค้นหานักเรียน แล้วให้คะแนนประจำวันเต็ม 10 คะแนน</p>
 <button onclick="startScan()">เปิดกล้องและเริ่มสแกน</button><button class="stop" onclick="stopScan()">หยุดกล้อง</button>
 <div id="reader"></div><div id="result" class="panel">พร้อมสแกน QR Code</div><div id="student" class="panel good" hidden></div>
+  
+<div id="studentActions" hidden>
+  <button onclick="showDailyScore()">
+    📝 บันทึกคะแนนวันนี้
+  </button>
+  <button onclick="showStudentHistory()" class="stop">
+    📊 ดูประวัติคะแนนรายบุคคล
+  </button>
+</div>
+
+<section id="historyPanel" class="criteria" hidden>
+  <h2>📊 ประวัติคะแนนรายบุคคล</h2>
+  <div id="historyContent"></div>
+  <button class="stop"
+    onclick="document.getElementById('historyPanel').hidden=true">
+    ปิดประวัติคะแนน
+  </button>
+</section>
+
 <section id="scorePanel" class="criteria" hidden><h2>ให้คะแนนประจำวัน (เต็ม 10 คะแนน)</h2><p style="text-align:left;margin:4px 0 8px">แต่ละหัวข้อให้ 0–2 คะแนน รวม 5 หัวข้อ สูงสุด 10 คะแนน</p>
 <div class="item"><label>1. ตรงเวลาและทำกิจกรรมเวรประจำวัน</label><div class="rating"><label><input type="radio" name="c1" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c1" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c1" value="2" onchange="updateTotal()"> 2</label></div></div>
 <div class="item"><label>2. แต่งกายถูกต้องตามระเบียบของโรงเรียน</label><div class="rating"><label><input type="radio" name="c2" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c2" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c2" value="2" onchange="updateTotal()"> 2</label></div></div>
@@ -22,64 +41,114 @@ let scanner=null,running=false,lastCode="",lastTime=0,requestNo=0,currentStudent
 function status(message,kind=""){const el=document.getElementById("result");el.textContent=message;el.className="panel"+(kind?" "+kind:"");}
 function jsonp(params,onData,onError){const cb="qrCallback_"+Date.now()+"_"+(++requestNo);const script=document.createElement("script");let done=false;const timeout=setTimeout(()=>fail(new Error("หมดเวลารอข้อมูลจาก Apps Script")),15000);function clean(){clearTimeout(timeout);try{delete window[cb]}catch(_){window[cb]=undefined}script.remove()}function fail(err){if(done)return;done=true;clean();onError(err)}window[cb]=data=>{if(done)return;done=true;clean();onData(data)};script.onerror=()=>fail(new Error("เชื่อมต่อ Apps Script ไม่สำเร็จ"));params.callback=cb;script.src=SCRIPT_URL+"?"+new URLSearchParams(params).toString();document.body.appendChild(script);}
 
-function lookupStudent(id) {
-  id = String(id || "").trim();
 
+function lookupStudent(id) {
+  id = String(id || '').trim();
   currentStudent = null;
-  document.getElementById("student").hidden = true;
-  document.getElementById("scorePanel").hidden = true;
+
+  document.getElementById('student').hidden = true;
+  document.getElementById('scorePanel').hidden = true;
+  document.getElementById('studentActions').hidden = true;
+  document.getElementById('historyPanel').hidden = true;
 
   if (!id) {
-    status("QR Code ไม่มีรหัสนักเรียน", "bad");
+    status('QR Code ไม่มีรหัสนักเรียน', 'bad');
     return;
   }
 
-  status("กำลังค้นหารหัส " + id + " ใน Google Sheets…");
+  status('กำลังค้นหารหัส ' + id + ' ใน Google Sheets…');
 
-  jsonp(
-    { api: "student", id: id },
-    function(data) {
-      if (!data) {
-        status("Apps Script ไม่ส่งข้อมูลกลับมา", "bad");
-        return;
-      }
-
-      if (!data.ok || !data.student) {
-        status(
-          data.message || "ไม่พบข้อมูลนักเรียนรหัส " + id,
-          "bad"
-        );
-        return;
-      }
-
-      currentStudent = data.student;
-
-      const box = document.getElementById("student");
-      box.hidden = false;
-      box.textContent =
-        "นักเรียน: " +
-        (currentStudent.firstName || "") + " " +
-        (currentStudent.lastName || "") +
-        " | ชั้น " + (currentStudent.className || "") +
-        " | รหัส " + (currentStudent.id || id);
-
-      clearScoreForm();
-      document.getElementById("scorePanel").hidden = false;
-
-      status(
-        "พบข้อมูลนักเรียนแล้ว เลือกคะแนนแต่ละข้อ แล้วกดยืนยัน",
-        "good"
-      );
-    },
-    function(err) {
-      status(
-        "ค้นหาข้อมูลไม่สำเร็จ: " +
-        (err && err.message ? err.message : err),
-        "bad"
-      );
+  jsonp({api: 'student', id: id}, data => {
+    if (!data || !data.ok || !data.student) {
+      status(data && data.message
+        ? data.message : 'ไม่พบข้อมูลนักเรียน', 'bad');
+      return;
     }
-  );
+
+    currentStudent = data.student;
+
+    const box = document.getElementById('student');
+    box.hidden = false;
+    box.textContent =
+      'นักเรียน: ' + currentStudent.firstName + ' ' +
+      currentStudent.lastName +
+      ' | ชั้น ' + currentStudent.className +
+      ' | รหัส ' + currentStudent.id;
+
+    document.getElementById('studentActions').hidden = false;
+
+    status('พบข้อมูลนักเรียนแล้ว กรุณาเลือกเมนูที่ต้องการ', 'good');
+  }, err => {
+    status(err.message || 'ค้นหาข้อมูลไม่สำเร็จ', 'bad');
+  });
 }
+
+function showDailyScore() {
+  if (!currentStudent) return;
+
+  document.getElementById('historyPanel').hidden = true;
+  clearScoreForm();
+  document.getElementById('scorePanel').hidden = false;
+  document.getElementById('scorePanel').scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+
+function showStudentHistory() {
+  if (!currentStudent) return;
+
+  const panel = document.getElementById('historyPanel');
+  const content = document.getElementById('historyContent');
+
+  panel.hidden = false;
+  content.textContent = 'กำลังโหลดประวัติคะแนน…';
+
+  jsonp({api: 'history', id: currentStudent.id}, data => {
+    if (!data || !data.ok) {
+      content.textContent = data && data.message
+        ? data.message : 'อ่านประวัติคะแนนไม่สำเร็จ';
+      return;
+    }
+
+    content.replaceChildren();
+
+    if (!data.records || data.records.length === 0) {
+      content.textContent = 'ยังไม่มีประวัติคะแนนของนักเรียนคนนี้';
+      return;
+    }
+
+    data.records.forEach(record => {
+      const row = document.createElement('div');
+      row.className = 'item';
+
+      const title = document.createElement('strong');
+      title.textContent = record.itemName || 'รายการคะแนน';
+
+      const detail = document.createElement('div');
+      detail.textContent =
+        'วันที่ ' + record.date +
+        ' | คะแนน ' + record.points;
+
+      row.appendChild(title);
+      row.appendChild(detail);
+
+      if (record.note) {
+        const note = document.createElement('div');
+        note.textContent = 'หมายเหตุ: ' + record.note;
+        row.appendChild(note);
+      }
+
+      content.appendChild(row);
+    });
+  }, err => {
+    content.textContent = err && err.message
+      ? err.message : 'เชื่อมต่อเพื่ออ่านประวัติไม่สำเร็จ';
+  });
+
+  panel.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
 
 function selectedScores(){return [1,2,3,4,5].map(i=>Number(document.querySelector('input[name="c'+i+'"]:checked').value))}
 function updateTotal(){document.getElementById("total").textContent=selectedScores().reduce((a,b)=>a+b,0)}
