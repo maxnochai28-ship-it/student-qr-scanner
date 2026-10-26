@@ -9,17 +9,8 @@
 <div id="reader"></div><div id="result" class="panel">พร้อมสแกน QR Code</div><div id="student" class="panel good" hidden></div>
   
 <div id="studentActions" hidden>
-
-  <button onclick="showUnitScore()">
-    📝 บันทึกคะแนนตาม Unit
-=======
-  <button onclick="showDailyScore()">
-    📝 บันทึกคะแนนวันนี้
->>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
-  </button>
-  <button onclick="showStudentHistory()" class="stop">
-    📊 ดูประวัติคะแนนรายบุคคล
-  </button>
+  <button type="button" onclick="showUnitScore()">📝 บันทึกคะแนนตาม Unit</button>
+  <button type="button" onclick="showStudentHistory()" class="stop">📊 ดูประวัติคะแนนรายบุคคล</button>
 </div>
 
 <section id="historyPanel" class="criteria" hidden>
@@ -102,15 +93,21 @@ function lookupStudent(id) {
   });
 }
 
-<<<<<<< HEAD
 function showUnitScore() {
-  if (!currentStudent) return;
+  if (!currentStudent) {
+    status('กรุณาสแกน QR Code นักเรียนก่อน', 'bad');
+    return;
+  }
+
   document.getElementById('historyPanel').hidden = true;
   document.getElementById('scorePanel').hidden = false;
+
   const select = document.getElementById('unitSelect');
-  select.innerHTML = '<option value="">กำลังโหลดรายการ Unit…</option>';
-  jsonp({api:'items', className:currentStudent.className}, data => {
+  select.innerHTML = '<option value="">กำลังโหลดรายการ Unit...</option>';
+
+  jsonp({api: 'items', className: currentStudent.className}, data => {
     select.replaceChildren();
+
     if (!data || !data.ok || !Array.isArray(data.items) || !data.items.length) {
       const opt = document.createElement('option');
       opt.value = '';
@@ -119,12 +116,14 @@ function showUnitScore() {
       status(data && data.message ? data.message : 'ไม่พบรายการ Unit', 'bad');
       return;
     }
+
     data.items.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item.itemId;
       opt.textContent = item.name;
       select.appendChild(opt);
     });
+
     document.getElementById('unitPoints').value = '1';
     document.getElementById('unitNote').value = '';
     status('เลือกรายการ Unit แล้วบันทึกคะแนนได้', 'good');
@@ -132,19 +131,8 @@ function showUnitScore() {
     select.innerHTML = '<option value="">โหลดรายการ Unit ไม่สำเร็จ</option>';
     status(err.message || 'โหลดรายการ Unit ไม่สำเร็จ', 'bad');
   });
-  document.getElementById('scorePanel').scrollIntoView({behavior:'smooth',block:'start'});
-=======
-function showDailyScore() {
-  if (!currentStudent) return;
 
-  document.getElementById('historyPanel').hidden = true;
-  clearScoreForm();
-  document.getElementById('scorePanel').hidden = false;
-  document.getElementById('scorePanel').scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
-  });
->>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
+  document.getElementById('scorePanel').scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 
 function showStudentHistory() {
@@ -202,48 +190,68 @@ function showStudentHistory() {
 }
 
 
-<<<<<<< HEAD
 function saveUnitScore() {
   if (!currentStudent || busy) return;
+
   const itemId = document.getElementById('unitSelect').value;
   const points = Number(document.getElementById('unitPoints').value);
   const note = document.getElementById('unitNote').value.trim();
-  if (!itemId) { status('กรุณาเลือกรายการ Unit', 'bad'); return; }
-  if (!Number.isInteger(points) || points < 0 || points > 100) {
-    status('กรุณากรอกคะแนนเป็นจำนวนเต็ม 0–100', 'bad'); return;
+
+  if (!itemId) {
+    status('กรุณาเลือกรายการ Unit', 'bad');
+    return;
   }
-  if (!confirm('ยืนยันบันทึกคะแนน '+points+' ให้ '+currentStudent.firstName+' '+currentStudent.lastName+' ใช่หรือไม่?')) return;
+  if (!Number.isInteger(points) || points < 0 || points > 100) {
+    status('กรุณากรอกคะแนนเป็นจำนวนเต็ม 0–100', 'bad');
+    return;
+  }
+
+  if (!confirm('ยืนยันบันทึกคะแนน ' + points + ' ให้ ' +
+      currentStudent.firstName + ' ' + currentStudent.lastName + ' ใช่หรือไม่?')) return;
+
   busy = true;
   const btn = document.getElementById('saveBtn');
-  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
-  jsonp({api:'unitScore', id:currentStudent.id, itemId:itemId, points:String(points), note:note}, data => {
-    busy = false; btn.disabled = false; btn.textContent = 'ยืนยันและบันทึกคะแนน Unit';
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก…';
+
+  jsonp({
+    api: 'unitScore',
+    id: currentStudent.id,
+    itemId: itemId,
+    points: String(points),
+    note: note
+  }, data => {
+    busy = false;
+    btn.disabled = false;
+    btn.textContent = 'ยืนยันและบันทึกคะแนน Unit';
+
     if (data && data.ok) {
-      status('บันทึกคะแนน Unit สำเร็จ: '+data.itemName+' ได้ '+data.points+' คะแนน', 'good');
+      status('บันทึกคะแนน Unit สำเร็จ: ' + data.itemName + ' ได้ ' + data.points + ' คะแนน', 'good');
       document.getElementById('unitNote').value = '';
     } else {
       status(data && data.message ? data.message : 'บันทึกคะแนนไม่สำเร็จ', 'bad');
     }
   }, err => {
-    busy = false; btn.disabled = false; btn.textContent = 'ยืนยันและบันทึกคะแนน Unit';
-    status((err.message || 'บันทึกคะแนนไม่สำเร็จ')+' ตรวจสอบ ScoreRecords ก่อนบันทึกซ้ำ', 'bad');
+    busy = false;
+    btn.disabled = false;
+    btn.textContent = 'ยืนยันและบันทึกคะแนน Unit';
+    status((err.message || 'บันทึกคะแนนไม่สำเร็จ') + ' กรุณาตรวจสอบ ScoreRecords ก่อนบันทึกซ้ำ', 'bad');
   });
 }
 
 async function stopScan() {
   if (scanner) {
-    try { if (running) await scanner.stop(); } catch (_) {}
-    try { await scanner.clear(); } catch (_) {}
+    try {
+      if (running) await scanner.stop();
+    } catch (_) {}
+    try {
+      await scanner.clear();
+    } catch (_) {}
   }
-  scanner = null; running = false;
+  scanner = null;
+  running = false;
   status('หยุดกล้องแล้ว');
 }
-=======
-function selectedScores(){return [1,2,3,4,5].map(i=>Number(document.querySelector('input[name="c'+i+'"]:checked').value))}
-function updateTotal(){document.getElementById("total").textContent=selectedScores().reduce((a,b)=>a+b,0)}
-function clearScoreForm(){for(let i=1;i<=5;i++)document.querySelector('input[name="c'+i+'"][value="0"]').checked=true;updateTotal()}
-function saveDailyScore(){if(!currentStudent||busy)return;const scores=selectedScores();const total=scores.reduce((a,b)=>a+b,0);if(!confirm("ยืนยันบันทึกคะแนน "+total+"/10 ให้ "+currentStudent.firstName+" "+currentStudent.lastName+" ใช่หรือไม่?"))return;busy=true;const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="กำลังบันทึก…";jsonp({api:"dailyScore",id:currentStudent.id,scores:scores.join(",")},data=>{busy=false;btn.disabled=false;btn.textContent="ยืนยันและบันทึกคะแนน";if(data&&data.ok){status("บันทึกคะแนนสำเร็จ "+data.total+"/10 คะแนน วันที่ "+data.date,"good");document.getElementById("scorePanel").hidden=true}else status(data&&data.message?data.message:"บันทึกคะแนนไม่สำเร็จ","bad")},err=>{busy=false;btn.disabled=false;btn.textContent="ยืนยันและบันทึกคะแนน";status(err.message+" หากไม่แน่ใจว่าบันทึกแล้วหรือไม่ ให้ตรวจสอบชีต DailyScoreRecords ก่อนกดซ้ำ","bad")})}
->>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
 
 async function startScan() {
   if (running) return;
