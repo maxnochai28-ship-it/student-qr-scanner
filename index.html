@@ -148,17 +148,72 @@ function showUnitScore() {
   const select = document.getElementById('unitSelect');
   select.innerHTML = '<option value="">กำลังโหลดรายการ Unit...</option>';
 
-  jsonp({api: 'items', className: currentStudent.className}, data => {
-    select.replaceChildren();
 
-    if (!data || !data.ok || !Array.isArray(data.items) || !data.items.length) {
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = 'ไม่พบรายการ Unit สำหรับชั้นนี้';
-      select.appendChild(opt);
-      status(data && data.message ? data.message : 'ไม่พบรายการ Unit', 'bad');
-      return;
-    }
+jsonp({api: 'items', className: currentStudent.className}, data => {
+  select.replaceChildren();
+
+  if (!data || data.ok !== true) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'โหลดรายการ Unit ไม่สำเร็จ';
+    select.appendChild(opt);
+
+    status(
+      data && data.message
+        ? 'โหลด Unit ไม่สำเร็จ: ' + data.message
+        : 'โหลด Unit ไม่สำเร็จ กรุณาตรวจสอบ API',
+      'bad'
+    );
+    console.error('Items API error:', data);
+    return;
+  }
+
+  const items = Array.isArray(data.items)
+    ? data.items
+    : Array.isArray(data.units)
+      ? data.units
+      : [];
+
+  if (items.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'ไม่พบรายการ Unit สำหรับชั้นนี้';
+    select.appendChild(opt);
+
+    status(
+      'ไม่พบ Unit ของชั้น ' + currentStudent.className +
+      ' กรุณาตรวจสอบคอลัมน์ className ในชีต ScoreItems',
+      'bad'
+    );
+    console.log('Items API response:', data);
+    return;
+  }
+
+  const firstOpt = document.createElement('option');
+  firstOpt.value = '';
+  firstOpt.textContent = '— เลือกรายการ Unit —';
+  select.appendChild(firstOpt);
+
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = String(item.itemId || '');
+    opt.textContent = String(item.name || item.itemName || item.itemId || '');
+    select.appendChild(opt);
+  });
+
+  status('โหลดรายการ Unit สำเร็จ ' + items.length + ' รายการ', 'good');
+  console.log('Items loaded:', items);
+}, err => {
+  select.replaceChildren();
+
+  const opt = document.createElement('option');
+  opt.value = '';
+  opt.textContent = 'เชื่อมต่อ API ไม่สำเร็จ';
+  select.appendChild(opt);
+
+  status(err.message || 'โหลดรายการ Unit ไม่สำเร็จ', 'bad');
+});
+
 
     data.items.forEach(item => {
       const opt = document.createElement('option');
