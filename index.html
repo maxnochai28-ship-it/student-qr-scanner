@@ -31,31 +31,29 @@
   </button>
 </section>
 
-<<<<<<< HEAD
+
 <section id="scorePanel" class="criteria" hidden>
-<h2>📝 บันทึกคะแนนตาม Unit</h2>
-<p style="text-align:left;margin:4px 0 12px">เลือกรายการ Unit ของชั้นเรียนนี้ แล้วระบุคะแนนที่จะบันทึก</p>
-<label for="unitSelect">รายการ Unit</label>
-<select id="unitSelect" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
-<option value="">กำลังโหลดรายการ Unit…</option>
-</select>
-<label for="unitPoints">คะแนน</label>
-<input id="unitPoints" type="number" min="0" max="100" step="1" value="1" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
-<label for="unitNote">หมายเหตุ (ถ้ามี)</label>
-<input id="unitNote" type="text" maxlength="300" placeholder="ระบุหมายเหตุ" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
-<button id="saveBtn" class="save" onclick="saveUnitScore()">ยืนยันและบันทึกคะแนน Unit</button>
+  <h2>📝 บันทึกคะแนนตาม Unit</h2>
+  <p style="text-align:left;margin:4px 0 12px">
+    เลือกรายการ Unit ของชั้นเรียนนี้ แล้วระบุคะแนนที่จะบันทึก
+  </p>
+
+  <label for="unitSelect">รายการ Unit</label>
+  <select id="unitSelect" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
+    <option value="">กำลังโหลดรายการ Unit...</option>
+  </select>
+
+  <label for="unitPoints">คะแนน</label>
+  <input id="unitPoints" type="number" min="0" max="100" step="1" value="1" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
+
+  <label for="unitNote">หมายเหตุ (ถ้ามี)</label>
+  <input id="unitNote" type="text" maxlength="300" placeholder="ระบุหมายเหตุ" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:6px 0 12px;font-size:16px">
+
+  <button id="saveBtn" class="save" onclick="saveUnitScore()">ยืนยันและบันทึกคะแนน Unit</button>
 </section>
-<p><small>คะแนนใหม่จะบันทึกในชีต ScoreRecords เดิม รายการคะแนนประจำวันเก่าจะไม่ถูกลบหรือแก้ไข</small></p>
-=======
-<section id="scorePanel" class="criteria" hidden><h2>ให้คะแนนประจำวัน (เต็ม 10 คะแนน)</h2><p style="text-align:left;margin:4px 0 8px">แต่ละหัวข้อให้ 0–2 คะแนน รวม 5 หัวข้อ สูงสุด 10 คะแนน</p>
-<div class="item"><label>1. ตรงเวลาและทำกิจกรรมเวรประจำวัน</label><div class="rating"><label><input type="radio" name="c1" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c1" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c1" value="2" onchange="updateTotal()"> 2</label></div></div>
-<div class="item"><label>2. แต่งกายถูกต้องตามระเบียบของโรงเรียน</label><div class="rating"><label><input type="radio" name="c2" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c2" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c2" value="2" onchange="updateTotal()"> 2</label></div></div>
-<div class="item"><label>3. ทิ้งขยะให้ถูกที่</label><div class="rating"><label><input type="radio" name="c3" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c3" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c3" value="2" onchange="updateTotal()"> 2</label></div></div>
-<div class="item"><label>4. รับผิดชอบของใช้ส่วนตัว</label><div class="rating"><label><input type="radio" name="c4" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c4" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c4" value="2" onchange="updateTotal()"> 2</label></div></div>
-<div class="item"><label>5. ทำการบ้านและส่งงานตามกำหนด</label><div class="rating"><label><input type="radio" name="c5" value="0" checked onchange="updateTotal()"> 0</label><label><input type="radio" name="c5" value="1" onchange="updateTotal()"> 1</label><label><input type="radio" name="c5" value="2" onchange="updateTotal()"> 2</label></div></div>
-<div class="total">รวม <span id="total">0</span> / 10 คะแนน</div><button id="saveBtn" class="save" onclick="saveDailyScore()">ยืนยันและบันทึกคะแนน</button><button onclick="clearScoreForm()" class="stop">ล้างคะแนนเป็น 0</button></section>
-<p><small>บันทึกได้ 1 ครั้งต่อนักเรียน 1 คนต่อวัน เพื่อป้องกันคะแนนซ้ำ ระบบเก็บข้อมูลในชีต DailyScoreRecords แยกจากประวัติคะแนนเดิม</small></p>
->>>>>>> a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
+
+<p><small>คะแนนใหม่จะบันทึกในชีต ScoreRecords โดยไม่ลบประวัติคะแนนเดิม</small></p>
+ a9fa4e70e85e0364be5ca744f5b5f7551c7b0e22
 </div></main>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC3VZUM894dAC7OSy8SXBVsfDPVYKN8OZOb54cJes3RpbR0CQIXesmKxRIFySkUFFqYA/exec";
