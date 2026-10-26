@@ -26,6 +26,103 @@ function selectedScores(){return [1,2,3,4,5].map(i=>Number(document.querySelecto
 function updateTotal(){document.getElementById("total").textContent=selectedScores().reduce((a,b)=>a+b,0)}
 function clearScoreForm(){for(let i=1;i<=5;i++)document.querySelector('input[name="c'+i+'"][value="0"]').checked=true;updateTotal()}
 function saveDailyScore(){if(!currentStudent||busy)return;const scores=selectedScores();const total=scores.reduce((a,b)=>a+b,0);if(!confirm("ยืนยันบันทึกคะแนน "+total+"/10 ให้ "+currentStudent.firstName+" "+currentStudent.lastName+" ใช่หรือไม่?"))return;busy=true;const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="กำลังบันทึก…";jsonp({api:"dailyScore",id:currentStudent.id,scores:scores.join(",")},data=>{busy=false;btn.disabled=false;btn.textContent="ยืนยันและบันทึกคะแนน";if(data&&data.ok){status("บันทึกคะแนนสำเร็จ "+data.total+"/10 คะแนน วันที่ "+data.date,"good");document.getElementById("scorePanel").hidden=true}else status(data&&data.message?data.message:"บันทึกคะแนนไม่สำเร็จ","bad")},err=>{busy=false;btn.disabled=false;btn.textContent="ยืนยันและบันทึกคะแนน";status(err.message+" หากไม่แน่ใจว่าบันทึกแล้วหรือไม่ ให้ตรวจสอบชีต DailyScoreRecords ก่อนกดซ้ำ","bad")})}
-async function startScan(){if(running)return;if(!window.Html5Qrcode){status("โหลดระบบสแกนไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต","bad");return}try{scanner=new Html5Qrcode("reader");const cameras=await Html5Qrcode.getCameras();if(!cameras.length)throw Error("ไม่พบกล้อง");const camera=cameras.find(c=>/back|rear|environment/i.test(c.label))||cameras[0];await scanner.start(camera.id,{fps:10,qrbox:{width:240,height:240}},text=>{const now=Date.now();if(text===lastCode&&now-lastTime<5000)return;lastCode=text;lastTime=now;lookupStudent(text.trim())},()=>{});running=true;status("กล้องพร้อมใช้งาน กรุณาส่อง QR Code")}catch(e){status("เปิดกล้องไม่ได้: "+(e.message||e)+" — โปรดอนุญาตให้เว็บไซต์ใช้กล้อง","bad");if(scanner){try{await scanner.clear()}catch(_){}scanner=null}}}
-async function stopScan(){if(scanner){try{if(running)await scanner.stop()}catch(_){}try{await scanner.clear()}catch(_){}}scanner=null;running=false;status("หยุดกล้องแล้ว")}
+
+async function startScan() {
+  if (running) return;
+
+  const result = document.getElementById("result");
+
+  if (!window.isSecureContext) {
+    status(
+      "กรุณาเปิดเว็บไซต์ผ่าน HTTPS เพื่ออนุญาตให้ใช้กล้อง",
+      "bad"
+    );
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    status(
+      "เบราว์เซอร์ไม่อนุญาตให้เปิดกล้อง กรุณาเปิดลิงก์ผ่าน Safari",
+      "bad"
+    );
+    return;
+  }
+
+  if (!window.Html5Qrcode) {
+    status(
+      "โหลดระบบสแกนไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต",
+      "bad"
+    );
+    return;
+  }
+
+  try {
+    if (scanner) {
+      try {
+        await scanner.clear();
+      } catch (_) {}
+      scanner = null;
+    }
+
+    scanner = new Html5Qrcode("reader");
+
+    status("กำลังขออนุญาตเปิดกล้องหลังของ iPhone…");
+
+    await scanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: function (width, height) {
+          const size = Math.floor(
+            Math.min(width, height, 280)
+          );
+          return { width: size, height: size };
+        },
+        aspectRatio: 1
+      },
+      function (text) {
+        const now = Date.now();
+
+        if (text === lastCode && now - lastTime < 5000) {
+          return;
+        }
+
+        lastCode = text;
+        lastTime = now;
+
+        lookupStudent(text.trim());
+      },
+      function () {}
+    );
+
+    running = true;
+    status("เปิดกล้องสำเร็จ กรุณาส่อง QR Code", "good");
+
+  } catch (e) {
+    running = false;
+
+    const message = e && e.message
+      ? e.message
+      : String(e);
+
+    if (scanner) {
+      try {
+        await scanner.clear();
+      } catch (_) {}
+      scanner = null;
+    }
+
+    if (e && e.name === "NotAllowedError") {
+      status(
+        "ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณาอนุญาตกล้องใน Safari",
+        "bad"
+      );
+    } else if (e && e.name === "NotFoundError") {
+      status("ไม่พบกล้องที่สามารถใช้งานได้", "bad");
+    } else {
+      status("เปิดกล้องไม่สำเร็จ: " + message, "bad");
+    }
+  }
+}
+
 </script></body></html>
