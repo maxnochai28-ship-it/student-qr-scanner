@@ -21,7 +21,66 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC3VZUM894dAC7OSy8S
 let scanner=null,running=false,lastCode="",lastTime=0,requestNo=0,currentStudent=null,busy=false;
 function status(message,kind=""){const el=document.getElementById("result");el.textContent=message;el.className="panel"+(kind?" "+kind:"");}
 function jsonp(params,onData,onError){const cb="qrCallback_"+Date.now()+"_"+(++requestNo);const script=document.createElement("script");let done=false;const timeout=setTimeout(()=>fail(new Error("หมดเวลารอข้อมูลจาก Apps Script")),15000);function clean(){clearTimeout(timeout);try{delete window[cb]}catch(_){window[cb]=undefined}script.remove()}function fail(err){if(done)return;done=true;clean();onError(err)}window[cb]=data=>{if(done)return;done=true;clean();onData(data)};script.onerror=()=>fail(new Error("เชื่อมต่อ Apps Script ไม่สำเร็จ"));params.callback=cb;script.src=SCRIPT_URL+"?"+new URLSearchParams(params).toString();document.body.appendChild(script);}
-function lookupStudent(id){currentStudent=null;document.getElementById("student").hidden=true;document.getElementById("scorePanel").hidden=true;status("กำลังค้นหารหัส "+id+" ใน Google Sheets…");jsonp({api:"student",id:id},data=>{if(!data||!data.ok||!data.student){status(data&&data.message?data.message:"ไม่พบข้อมูลนักเรียน","bad");return}currentStudent=data.student;const box=document.getElementById("student");box.hidden=false;box.textContent="นักเรียน: "+currentStudent.firstName+" "+currentStudent.lastName+" | ชั้น "+currentStudent.className+" | รหัส "+currentStudent.id;clearScoreForm();document.getElementById("scorePanel").hidden=false;status("พบข้อมูลนักเรียนแล้ว เลือกคะแนนแต่ละข้อ แล้วกดยืนยัน","good")},err=>status(err.message+" กรุณาตรวจสอบการ Deploy ของ Apps Script","bad"))}
+
+function lookupStudent(id) {
+  id = String(id || "").trim();
+
+  currentStudent = null;
+  document.getElementById("student").hidden = true;
+  document.getElementById("scorePanel").hidden = true;
+
+  if (!id) {
+    status("QR Code ไม่มีรหัสนักเรียน", "bad");
+    return;
+  }
+
+  status("กำลังค้นหารหัส " + id + " ใน Google Sheets…");
+
+  jsonp(
+    { api: "student", id: id },
+    function(data) {
+      if (!data) {
+        status("Apps Script ไม่ส่งข้อมูลกลับมา", "bad");
+        return;
+      }
+
+      if (!data.ok || !data.student) {
+        status(
+          data.message || "ไม่พบข้อมูลนักเรียนรหัส " + id,
+          "bad"
+        );
+        return;
+      }
+
+      currentStudent = data.student;
+
+      const box = document.getElementById("student");
+      box.hidden = false;
+      box.textContent =
+        "นักเรียน: " +
+        (currentStudent.firstName || "") + " " +
+        (currentStudent.lastName || "") +
+        " | ชั้น " + (currentStudent.className || "") +
+        " | รหัส " + (currentStudent.id || id);
+
+      clearScoreForm();
+      document.getElementById("scorePanel").hidden = false;
+
+      status(
+        "พบข้อมูลนักเรียนแล้ว เลือกคะแนนแต่ละข้อ แล้วกดยืนยัน",
+        "good"
+      );
+    },
+    function(err) {
+      status(
+        "ค้นหาข้อมูลไม่สำเร็จ: " +
+        (err && err.message ? err.message : err),
+        "bad"
+      );
+    }
+  );
+}
+
 function selectedScores(){return [1,2,3,4,5].map(i=>Number(document.querySelector('input[name="c'+i+'"]:checked').value))}
 function updateTotal(){document.getElementById("total").textContent=selectedScores().reduce((a,b)=>a+b,0)}
 function clearScoreForm(){for(let i=1;i<=5;i++)document.querySelector('input[name="c'+i+'"][value="0"]').checked=true;updateTotal()}
